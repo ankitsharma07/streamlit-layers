@@ -78,6 +78,7 @@ def main():
     # Render the chips
     render_chips()
     render_columns()
+    save_data(data)
 
 if __name__ == "__main__":
     main()
