@@ -50,6 +50,11 @@ def load_data():
             "selected_chips": chips,
             "column_chips": {column: [] for column in columns}
         }
+    except json.JSONDecodeError:
+        data = {
+            "selected_chips": chips,
+            "column_chips": {column: [] for column in columns}
+        }
     return data
 
 def save_data(data):
