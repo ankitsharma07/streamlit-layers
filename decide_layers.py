@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
 import streamlit as st
+import json
 
-chips = ["NREGA ASSETS: Land restoration", 
+chips = ["NREGA ASSETS: Land restoration",
     "NREGA ASSETS: Off-farm livelihood assets",
     "NREGA ASSETS: Irrigation farms",
     "NREGA ASSETS: Plantations",
     "NREGA ASSETS: Soil and Water Conservation",
     "NREGA ASSETS: Community assets",
     "NREGA ASSETS: Unidentified",
-    "Admin Boundaries", 
+    "Admin Boundaries",
     "LULC",
     "CLART",
     "Surface Water Bodies",
@@ -28,32 +29,45 @@ chips = ["NREGA ASSETS: Land restoration",
     "Water Structures: Drainage/Soakage Channels",
     "Water Structures: Recharge pits",
     "Water Structures: Soakage pits",
-    "Water Structures: Trench cum bund"    
+    "Water Structures: Trench cum bund"
 ]
 
 columns = ["Home Screen",
-    "Groundwater", 
+    "Groundwater",
     "Surface Waterbodies",
     "Agriculture",
     "Livelihood",
     "Resource Mapping"
 ]
 
-if "selected_chips" not in st.session_state:
-    st.session_state.selected_chips = chips
-if "column_chips" not in st.session_state:
-    st.session_state.column_chips = {column: [] for column in columns}
+@st.cache_resource
+def load_data():
+    try:
+        with open("data.json", "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        data = {
+            "selected_chips": chips,
+            "column_chips": {column: [] for column in columns}
+        }
+    return data
+
+def save_data(data):
+    with open("data.json", "w") as file:
+        json.dump(data, file)
+
+data = load_data()
 
 
 def render_chips():
-    st.session_state.selected_chips = st.multiselect("Available Layers", chips, default=st.session_state.selected_chips, key="chip_multiselect")
+    data["selected_chips"] = st.multiselect("Available Layers", chips, default=data["selected_chips"], key="chip_multiselect")
 
 def render_columns():
     for column in columns:
-        selected_column_chips = st.multiselect(f"Select layers for {column}:", st.session_state.selected_chips, default=st.session_state.column_chips[column], key=f"column_selectbox_{column}")
-        st.session_state.column_chips[column] = selected_column_chips
-        
-    for column, chips in st.session_state.column_chips.items():
+        selected_column_chips = st.multiselect(f"Select layers for {column}:", data["selected_chips"], default=data["column_chips"][column], key=f"column_selectbox_{column}")
+        data["column_chips"][column] = selected_column_chips
+
+    for column, chips in data["column_chips"].items():
         st.subheader(column)
         for chip in chips:
             st.write(f"- {chip}")
@@ -64,6 +78,6 @@ def main():
     # Render the chips
     render_chips()
     render_columns()
-    
+
 if __name__ == "__main__":
     main()
