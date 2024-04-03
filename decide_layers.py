@@ -39,20 +39,21 @@ columns = ["Home Screen",
     "Resource Mapping"
 ]
 
+if "selected_chips" not in st.session_state:
+    st.session_state.selected_chips = chips
+if "column_chips" not in st.session_state:
+    st.session_state.column_chips = {column: [] for column in columns}
+
 
 def render_chips():
-    selected_chips = st.multiselect("Available Layers", chips, default=chips, key="chip_multiselect")
-    return selected_chips
+    st.session_state.selected_chips = st.multiselect("Available Layers", chips, default=st.session_state.selected_chips, key="chip_multiselect")
 
-
-def render_columns(selected_chips):
-    column_chips = {column: [] for column in columns}
-
+def render_columns():
     for column in columns:
-        selected_column_chips = st.multiselect(f"Select layers for {column}:", selected_chips, key=f"column_selectbox_{column}")
-        column_chips[column] = selected_column_chips
+        selected_column_chips = st.multiselect(f"Select layers for {column}:", st.session_state.selected_chips, default=st.session_state.column_chips[column], key=f"column_selectbox_{column}")
+        st.session_state.column_chips[column] = selected_column_chips
         
-    for column, chips in column_chips.items():
+    for column, chips in st.session_state.column_chips.items():
         st.subheader(column)
         for chip in chips:
             st.write(f"- {chip}")
@@ -61,23 +62,8 @@ def main():
     st.title("Assign Layers to respective screens")
 
     # Render the chips
-    selected_chips = render_chips()
-
-    # Render the columns
-    column_width = 1.0 / len(columns)  # Calculate the width of each column
-    column_containers = []
-
-    for column in columns:
-        column_container = st.expander(column, expanded=True)
-        column_containers.append(column_container)
-
-    # Render the column contents
-    for column, column_container in zip(columns, column_containers):
-        with column_container:
-            selected_column_chips = st.multiselect(f"Select layers for {column}:", selected_chips, key=f"column_multiselect_{column}")
-            for chip in selected_column_chips:
-                st.write(f"- {chip}")
-
-
+    render_chips()
+    render_columns()
+    
 if __name__ == "__main__":
     main()
